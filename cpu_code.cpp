@@ -26,43 +26,58 @@ void tryKeyRandom(int i, char *nonce, char*veribuf) {
 
         char p_key[KEY_SIZE+1];
         char *key = p_key;
+        size_t veri_size = 8;
 
-        bool veribufIsValid = false;
         bool keyFound = false;
         //cout << "Trying random key on CPU Thread "<< i << endl;
+
+        size_t unmatching;
 
         do {
             memcpy(veribuf_test, veribuf, VERIBUF_SIZE);
             keyFound = false;
 
-            make_random_key(key);
+            if (make_random_key(p_key, sizeof(p_key)) == false) {
+                return;
+            }
 
-            if (s20_crypt((uint8_t *) key, S20_KEYLEN_128, (uint8_t *) nonce, 0, (uint8_t *) veribuf_test, VERIBUF_SIZE) == S20_FAILURE) {
+            if (s20_crypt((uint8_t *) key, S20_KEYLEN_128, (uint8_t *) nonce, 0, (uint8_t *) veribuf_test, veri_size) == S20_FAILURE) {
                 puts("Error: encryption failed");
                 return;
             }
 
-            veribufIsValid = is_valid(veribuf_test);
 
-            if (veribufIsValid) {
-                printf("\ndecoded data:\n");
-                hexdump(veribuf_test, VERIBUF_SIZE);
-                keyFound = true;
-                break;
+            if ((unmatching = count_unmatching(veribuf_test, veri_size)) == 0) {
+                if (veri_size == VERIBUF_SIZE) { //full length already checked
+                   keyFound = true;
+                   break;
+                }
+                printf("[*] Key candidate: %s\n", key);
+                memcpy(veribuf_test, veribuf, VERIBUF_SIZE);
+                if (s20_crypt((uint8_t *) key, S20_KEYLEN_128, (uint8_t *) nonce, 0, (uint8_t *) veribuf_test, VERIBUF_SIZE) == S20_FAILURE) {
+                    puts("Error: encryption failed");
+                    return;
+                }
+                if ((unmatching = count_unmatching(veribuf_test, VERIBUF_SIZE)) == 0) {
+                    printf("[+] Doublecheck passed\n");
+                    keyFound = true;
+                    break;
+                } else {
+                    printf("[-] Doublecheck failed, searching again...\n");
+                }
+
+                printf("unmatching: %d\n", unmatching);
             }
 
             keysCalculated++;
 
+        } while (!shutdownRequested);
 
-        } while (!(veribufIsValid || keyFound) && !shutdownRequested);
-
-        if (keyFound) {
-            printf("[+] %s is a valid key!\n", key);
-            return;
-        } else {
-            printf("[-] %s is NOT a valid key!\n", key);
-        }
+        printf("\ndecoded data:\n");
+        hexdump(veribuf_test, VERIBUF_SIZE);
+        printf("unmatching: %d\n", unmatching);
 }
+
 
 
 bool threadShutdownRequested = false;
@@ -302,9 +317,6 @@ void measureCPUPerformance(uint64_t nrOfThreads,
     uint64_t nrOfKeys = nrOfThreads;
 
     char *keys = (char*)malloc(sizeof(char)*KEY_SIZE*nrOfKeys);
-
-    bool veribufIsValid = false;
-    bool matches = false;
 
     uint64_t keyBlocks = pow(26*2+10,8)/(nrOfKeys);
 

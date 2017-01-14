@@ -100,18 +100,26 @@ inline void nextKey16Byte(char *key) {
 	*/
 }
 
-inline void make_random_key(char* key)
+inline bool make_random_key(char* key, size_t buf_size)
 {
-    size_t charset_len = strlen(KEY_CHARSET);
+    if (key == NULL || buf_size < KEY_SIZE) {
+        return false;
+    }
 
+    size_t charset_len = strlen(KEY_CHARSET);
     memset(key, 'x', KEY_SIZE);
 
     for (int i = 0; i < KEY_SIZE; i+=4) {
-        size_t rand_i1 = rand() % charset_len;
-        size_t rand_i2 = rand() % charset_len;
+        static size_t rand_i1 = 0;
+        static size_t rand_i2 = 0;
+        rand_i1 = (rand_i1 + rand()) % charset_len;
+        rand_i2 = (rand_i2 + rand()) % charset_len;
         key[i] = KEY_CHARSET[rand_i1];
         key[i+1] = KEY_CHARSET[rand_i2];
     }
+
     key[KEY_SIZE] = 0;
+
+    return true;
 }
 
