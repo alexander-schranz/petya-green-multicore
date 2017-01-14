@@ -269,7 +269,9 @@ int main(int argc, char *argv[])
 		}
 
 		if (vm.count("queryDeviceInfo")) {
-			queryDeviceInfo();
+			uint64_t nrBlocks;
+			uint64_t nrThreads;
+			queryDeviceInfo(&nrBlocks, &nrThreads);
 			io_service.stop();
 
 			return 0;
