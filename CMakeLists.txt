@@ -52,19 +52,8 @@ if(Boost_FOUND)
 	)
 endif()
 
-
-#cuda_add_executable(
-#    petya_green 
-#    gpu_code.cu)
-
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-
-IF (NOT APPLE)
-    SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-    SET(BUILD_SHARED_LIBRARIES OFF)
-    SET(CMAKE_EXE_LINKER_FLAGS "-static")
-ENDIF(NOT APPLE)
 
 option (OUT_32BIT "Build 32-bit executable" OFF)
 
