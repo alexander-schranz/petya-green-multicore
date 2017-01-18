@@ -33,20 +33,20 @@ set (srcs
 set(
     CUDA_NVCC_FLAGS
     ${CUDA_NVCC_FLAGS};
-    -O3 -gencode arch=compute_30,code=sm_30 
+    -O3 -gencode arch=compute_30,code=sm_30
 #-lineinfo  -maxrregcount=16
     )
 
-set(Boost_USE_STATIC_LIBS OFF) 
-set(Boost_USE_MULTITHREADED ON)  
-set(Boost_USE_STATIC_RUNTIME OFF) 
-find_package(Boost 1.45.0 COMPONENTS system thread program_options filesystem regex date_time) 
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
+find_package(Boost 1.45.0 COMPONENTS system thread program_options filesystem regex date_time)
 find_package(CUDA QUIET REQUIRED)
 
 if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS}) 
+    include_directories(${Boost_INCLUDE_DIRS})
     cuda_add_executable (petya_green ${hdrs} ${srcs})
-    target_link_libraries(petya_green 
+    target_link_libraries(petya_green
 	${Boost_LIBRARIES}
  	${Boost_SYSTEM_LIBRARY}
 	)
@@ -65,10 +65,3 @@ IF (OUT_32BIT)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32" CACHE STRING "c++ flags")
     set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -m32" CACHE STRING "c flags")
 ENDIF(OUT_32BIT)
-
-
-
-
-
-
-
